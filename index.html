@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Matrix Solver</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <div class="icon">🧮</div>
+        <h1>Matrix Solver</h1>
+        <p>Fast • Simple • Powerful Matrix Calculator</p>
+    </header>
+
+    <section class="card">
+
+        <h2>Matrix Size</h2>
+
+        <div class="size-controls">
+
+            <div>
+                <label>Rows</label>
+                <input type="number" id="rowsA" min="1" max="10" value="2">
+            </div>
+
+            <div>
+                <label>Columns</label>
+                <input type="number" id="colsA" min="1" max="10" value="2">
+            </div>
+
+            <button onclick="createMatrixA()">Create Matrix A</button>
+
+        </div>
+
+        <div id="matrixA"></div>
+
+    </section>
+
+
+    <section class="card">
+
+        <h2>Operations</h2>
+
+        <div class="buttons">
+
+            <button onclick="determinant()">Determinant</button>
+
+            <button onclick="inverse()">Inverse</button>
+
+            <button onclick="squareMatrix()">A² Square</button>
+
+            <button onclick="transpose()">Transpose</button>
+
+            <button onclick="prepareAddition()">Addition</button>
+
+            <button onclick="prepareSubtraction()">Subtraction</button>
+
+            <button onclick="prepareMultiplication()">Multiplication</button>
+
+        </div>
+
+    </section>
+
+
+    <section class="card" id="matrixBSection">
+
+        <h2>Matrix B</h2>
+
+        <div id="matrixB"></div>
+
+    </section>
+
+
+    <section class="card result-card">
+
+        <h2>Result</h2>
+
+        <div id="result">
+            Your answer will appear here.
+        </div>
+
+    </section>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
