@@ -1,21 +1,24 @@
 /* ==========================================
-   MATRIX SOLVER - FINAL JAVASCRIPT
+   MATRIX SOLVER - FINAL FIXED JAVASCRIPT
 ========================================== */
+
+let currentOperation = null;
 
 
 /* ==========================================
-   INITIALIZATION
+   STARTUP
 ========================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
-
+document.addEventListener("DOMContentLoaded", function () {
     createMatrixA();
 
+    document.getElementById("rowsA").addEventListener("change", createMatrixA);
+    document.getElementById("colsA").addEventListener("change", createMatrixA);
 });
 
 
 /* ==========================================
-   MATRIX CREATION
+   CREATE MATRIX A
 ========================================== */
 
 function createMatrixA() {
@@ -24,9 +27,12 @@ function createMatrixA() {
     const cols = parseInt(document.getElementById("colsA").value);
 
     createMatrixInputs("matrixA", rows, cols, "A");
-
 }
 
+
+/* ==========================================
+   CREATE MATRIX B
+========================================== */
 
 function createMatrixB() {
 
@@ -34,13 +40,20 @@ function createMatrixB() {
     const cols = parseInt(document.getElementById("colsB").value);
 
     createMatrixInputs("matrixB", rows, cols, "B");
-
 }
 
+
+/* ==========================================
+   CREATE INPUT BOXES
+========================================== */
 
 function createMatrixInputs(containerId, rows, cols, matrixName) {
 
     const container = document.getElementById(containerId);
+
+    if (!container) {
+        return;
+    }
 
     container.innerHTML = "";
 
@@ -55,18 +68,19 @@ function createMatrixInputs(containerId, rows, cols, matrixName) {
             const input = document.createElement("input");
 
             input.type = "text";
-
             input.className = "matrix-input";
 
             input.placeholder = "0";
 
             input.dataset.row = i;
-
             input.dataset.col = j;
-
             input.dataset.matrix = matrixName;
 
             input.autocomplete = "off";
+
+            input.addEventListener("input", function () {
+                this.value = this.value.replace(/[^0-9./-]/g, "");
+            });
 
             row.appendChild(input);
         }
@@ -77,7 +91,7 @@ function createMatrixInputs(containerId, rows, cols, matrixName) {
 
 
 /* ==========================================
-   READ MATRIX
+   READ NUMBERS
 ========================================== */
 
 function parseNumber(value) {
@@ -88,7 +102,7 @@ function parseNumber(value) {
         return 0;
     }
 
-    // Support fractions such as 3/4 and -5/2
+    /* Fraction support: 3/4, -2/5 */
     if (value.includes("/")) {
 
         const parts = value.split("/");
@@ -103,21 +117,26 @@ function parseNumber(value) {
                 !isNaN(denominator) &&
                 denominator !== 0
             ) {
-
                 return numerator / denominator;
             }
         }
+
+        throw new Error("Invalid fraction: " + value);
     }
 
     const number = Number(value);
 
     if (isNaN(number)) {
-        throw new Error(`Invalid value: ${value}`);
+        throw new Error("Invalid number: " + value);
     }
 
     return number;
 }
 
+
+/* ==========================================
+   GET MATRIX
+========================================== */
 
 function getMatrix(matrixName) {
 
@@ -126,55 +145,52 @@ function getMatrix(matrixName) {
     );
 
     if (inputs.length === 0) {
-        throw new Error(`Matrix ${matrixName} not found.`);
+        throw new Error(`Matrix ${matrixName} is empty.`);
     }
 
-    const rows = {};
+    const matrix = [];
 
     inputs.forEach(input => {
 
-        const r = input.dataset.row;
-        const c = input.dataset.col;
+        const row = parseInt(input.dataset.row);
+        const col = parseInt(input.dataset.col);
 
-        if (!rows[r]) {
-            rows[r] = [];
+        if (!matrix[row]) {
+            matrix[row] = [];
         }
 
-        rows[r][c] = parseNumber(input.value);
+        matrix[row][col] = parseNumber(input.value);
     });
 
-    return Object.values(rows);
+    return matrix;
 }
 
 
 function getMatrixA() {
-
     return getMatrix("A");
-
 }
 
 
 function getMatrixB() {
-
     return getMatrix("B");
-
 }
 
 
 /* ==========================================
-   MATRIX VALIDATION
+   CHECK SQUARE
 ========================================== */
 
 function isSquare(matrix) {
 
-    return matrix.length > 0 &&
-        matrix.every(row => row.length === matrix.length);
-
+    return (
+        matrix.length > 0 &&
+        matrix.every(row => row.length === matrix.length)
+    );
 }
 
 
 /* ==========================================
-   GREATEST COMMON DIVISOR
+   GCD
 ========================================== */
 
 function gcd(a, b) {
@@ -184,7 +200,7 @@ function gcd(a, b) {
 
     while (b !== 0) {
 
-        let temp = a % b;
+        const temp = a % b;
 
         a = b;
         b = temp;
@@ -195,53 +211,39 @@ function gcd(a, b) {
 
 
 /* ==========================================
-   FRACTION CONVERTER
+   FRACTION
 ========================================== */
 
 function toFraction(value) {
 
     if (Math.abs(value) < 1e-10) {
-        return {
-            type: "text",
-            value: "0"
-        };
+        return "0";
     }
 
-
-    // Integer
     if (Math.abs(value - Math.round(value)) < 1e-10) {
-
-        return {
-            type: "text",
-            value: String(Math.round(value))
-        };
-
+        return String(Math.round(value));
     }
-
 
     const sign = value < 0 ? "-" : "";
 
-    let x = Math.abs(value);
+    let number = Math.abs(value);
 
     let bestNumerator = 0;
     let bestDenominator = 1;
     let bestError = Infinity;
 
-
-    // Find a simple fraction
     for (let denominator = 1; denominator <= 10000; denominator++) {
 
-        const numerator = Math.round(x * denominator);
+        const numerator = Math.round(number * denominator);
 
-        const error =
-            Math.abs(x - numerator / denominator);
+        const error = Math.abs(
+            number - numerator / denominator
+        );
 
         if (error < bestError) {
 
             bestError = error;
-
             bestNumerator = numerator;
-
             bestDenominator = denominator;
         }
 
@@ -250,64 +252,24 @@ function toFraction(value) {
         }
     }
 
+    const divisor = gcd(
+        bestNumerator,
+        bestDenominator
+    );
 
-    const divisor =
-        gcd(bestNumerator, bestDenominator);
-
-
-    bestNumerator =
-        bestNumerator / divisor;
-
-    bestDenominator =
-        bestDenominator / divisor;
-
+    bestNumerator /= divisor;
+    bestDenominator /= divisor;
 
     if (bestDenominator === 1) {
-
-        return {
-            type: "text",
-            value: sign + bestNumerator
-        };
-
+        return sign + bestNumerator;
     }
-
-
-    return {
-
-        type: "fraction",
-
-        numerator: sign + bestNumerator,
-
-        denominator: bestDenominator
-
-    };
-
-}
-
-
-/* ==========================================
-   FRACTION HTML
-========================================== */
-
-function fractionHTML(value) {
-
-    const fraction = toFraction(value);
-
-
-    if (fraction.type === "text") {
-
-        return fraction.value;
-
-    }
-
 
     return `
         <span class="fraction">
-            <span class="numerator">${fraction.numerator}</span>
-            <span class="denominator">${fraction.denominator}</span>
+            <span class="numerator">${sign}${bestNumerator}</span>
+            <span class="denominator">${bestDenominator}</span>
         </span>
     `;
-
 }
 
 
@@ -322,7 +284,6 @@ function cleanNumber(value) {
     }
 
     return value;
-
 }
 
 
@@ -334,27 +295,19 @@ function determinant(matrix) {
 
     const n = matrix.length;
 
-
     if (n === 1) {
-
         return matrix[0][0];
-
     }
-
 
     if (n === 2) {
 
-        return (
-            matrix[0][0] * matrix[1][1]
-            -
+        return cleanNumber(
+            matrix[0][0] * matrix[1][1] -
             matrix[0][1] * matrix[1][0]
         );
-
     }
 
-
     let det = 0;
-
 
     for (let col = 0; col < n; col++) {
 
@@ -364,44 +317,33 @@ function determinant(matrix) {
                 row.filter((_, index) => index !== col)
             );
 
-
-        const sign =
-            col % 2 === 0 ? 1 : -1;
-
+        const sign = col % 2 === 0 ? 1 : -1;
 
         det +=
             sign *
             matrix[0][col] *
             determinant(minor);
-
     }
 
-
     return cleanNumber(det);
-
 }
 
 
 /* ==========================================
    INVERSE
-   GAUSS-JORDAN
 ========================================== */
 
 function inverse(matrix) {
 
     const n = matrix.length;
 
-
     if (!isSquare(matrix)) {
-
         return null;
-
     }
-
 
     let augmented = matrix.map((row, i) => [
 
-        ...row.map(Number),
+        ...row,
 
         ...Array.from(
             { length: n },
@@ -413,93 +355,65 @@ function inverse(matrix) {
 
     for (let col = 0; col < n; col++) {
 
-
-        // Find best pivot
         let pivotRow = col;
-
 
         for (let row = col + 1; row < n; row++) {
 
             if (
-                Math.abs(augmented[row][col])
-                >
+                Math.abs(augmented[row][col]) >
                 Math.abs(augmented[pivotRow][col])
             ) {
-
                 pivotRow = row;
-
             }
-
         }
 
 
-        // Singular matrix
         if (
-            Math.abs(augmented[pivotRow][col])
-            < 1e-10
+            Math.abs(augmented[pivotRow][col]) <
+            1e-10
         ) {
-
             return null;
-
         }
 
 
-        // Swap rows
         [
             augmented[col],
             augmented[pivotRow]
-        ] =
-        [
+        ] = [
             augmented[pivotRow],
             augmented[col]
         ];
 
 
-        // Divide pivot row
-        const pivot =
-            augmented[col][col];
+        const pivot = augmented[col][col];
 
 
         for (let j = 0; j < 2 * n; j++) {
 
             augmented[col][j] /= pivot;
-
         }
 
 
-        // Eliminate column
         for (let row = 0; row < n; row++) {
 
             if (row === col) {
                 continue;
             }
 
-
-            const factor =
-                augmented[row][col];
-
+            const factor = augmented[row][col];
 
             for (let j = 0; j < 2 * n; j++) {
 
-                augmented[row][j]
-                    -=
+                augmented[row][j] -=
                     factor * augmented[col][j];
-
             }
-
         }
-
     }
 
 
     return augmented.map(row =>
-
-        row
-            .slice(n)
-            .map(cleanNumber)
-
+        row.slice(n).map(cleanNumber)
     );
-
 }
 
 
@@ -509,10 +423,9 @@ function inverse(matrix) {
 
 function transpose(matrix) {
 
-    return matrix[0].map((_, col) =>
-        matrix.map(row => row[col])
+    return matrix[0].map((_, column) =>
+        matrix.map(row => row[column])
     );
-
 }
 
 
@@ -523,17 +436,10 @@ function transpose(matrix) {
 function addMatrices(A, B) {
 
     return A.map((row, i) =>
-
         row.map((value, j) =>
-
-            cleanNumber(
-                value + B[i][j]
-            )
-
+            cleanNumber(value + B[i][j])
         )
-
     );
-
 }
 
 
@@ -544,17 +450,10 @@ function addMatrices(A, B) {
 function subtractMatrices(A, B) {
 
     return A.map((row, i) =>
-
         row.map((value, j) =>
-
-            cleanNumber(
-                value - B[i][j]
-            )
-
+            cleanNumber(value - B[i][j])
         )
-
     );
-
 }
 
 
@@ -564,45 +463,28 @@ function subtractMatrices(A, B) {
 
 function multiplyMatrices(A, B) {
 
-    const rowsA = A.length;
-
-    const colsA = A[0].length;
-
-    const colsB = B[0].length;
-
-
     const result = [];
 
-
-    for (let i = 0; i < rowsA; i++) {
+    for (let i = 0; i < A.length; i++) {
 
         const row = [];
 
-
-        for (let j = 0; j < colsB; j++) {
+        for (let j = 0; j < B[0].length; j++) {
 
             let sum = 0;
 
-
-            for (let k = 0; k < colsA; k++) {
+            for (let k = 0; k < B.length; k++) {
 
                 sum += A[i][k] * B[k][j];
-
             }
 
-
             row.push(cleanNumber(sum));
-
         }
 
-
         result.push(row);
-
     }
 
-
     return result;
-
 }
 
 
@@ -613,7 +495,6 @@ function multiplyMatrices(A, B) {
 function displayMatrix(matrix) {
 
     return `
-
         <div class="result-matrix">
 
             ${matrix.map(row => `
@@ -623,9 +504,7 @@ function displayMatrix(matrix) {
                     ${row.map(value => `
 
                         <div class="result-value">
-
-                            ${fractionHTML(value)}
-
+                            ${toFraction(value)}
                         </div>
 
                     `).join("")}
@@ -635,14 +514,12 @@ function displayMatrix(matrix) {
             `).join("")}
 
         </div>
-
     `;
-
 }
 
 
 /* ==========================================
-   RESULT HELPERS
+   SHOW RESULT
 ========================================== */
 
 function showResult(title, content) {
@@ -658,11 +535,13 @@ function showResult(title, content) {
             ${content}
 
         </div>
-
     `;
-
 }
 
+
+/* ==========================================
+   ERROR
+========================================== */
 
 function showError(message) {
 
@@ -675,14 +554,12 @@ function showError(message) {
             </div>
 
         </div>
-
     `;
-
 }
 
 
 /* ==========================================
-   DETERMINANT BUTTON
+   DETERMINANT
 ========================================== */
 
 function calculateDeterminant() {
@@ -691,53 +568,45 @@ function calculateDeterminant() {
 
         const A = getMatrixA();
 
-
         if (!isSquare(A)) {
 
             showError(
-                "Determinant can only be calculated for a square matrix."
+                "Determinant requires a square matrix."
             );
 
             return;
-
         }
 
-
         const det = determinant(A);
-
 
         showResult(
 
             "🔢 Determinant of Matrix A",
 
             `
-                <p class="info">det(A) =</p>
+                <p class="info">
+                    det(A) =
+                </p>
 
                 <div style="
                     font-size:32px;
                     font-weight:bold;
                     margin-top:15px;
-                    color:#ffffff;
                 ">
-                    ${fractionHTML(det)}
+                    ${toFraction(det)}
                 </div>
             `
-
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         showError(error.message);
-
     }
-
 }
 
 
 /* ==========================================
-   INVERSE BUTTON
+   INVERSE
 ========================================== */
 
 function calculateInverse() {
@@ -746,22 +615,18 @@ function calculateInverse() {
 
         const A = getMatrixA();
 
-
         if (!isSquare(A)) {
 
             showError(
-                "Inverse can only be calculated for a square matrix."
+                "Inverse requires a square matrix."
             );
 
             return;
-
         }
-
 
         const det = determinant(A);
 
 
-        // No inverse
         if (Math.abs(det) < 1e-10) {
 
             showResult(
@@ -770,41 +635,29 @@ function calculateInverse() {
 
                 `
                     <p class="error">
-                        The matrix is singular.
+                        Determinant = 0
                     </p>
 
-                    <br>
-
-                    <p>
-                        Determinant = <strong>0</strong>
-                    </p>
-
-                    <p style="
-                        margin-top:8px;
-                        color:#9da8c5;
-                    ">
-                        Since det(A) = 0, A⁻¹ does not exist.
+                    <p style="margin-top:10px;color:#aeb8d1;">
+                        Since det(A) = 0, the inverse of A does not exist.
                     </p>
                 `
-
             );
 
             return;
-
         }
 
 
-        const inv = inverse(A);
+        const result = inverse(A);
 
 
-        if (!inv) {
+        if (!result) {
 
             showError(
                 "Inverse does not exist."
             );
 
             return;
-
         }
 
 
@@ -821,35 +674,26 @@ function calculateInverse() {
                     margin-top:8px;
                     color:#aeb8d1;
                 ">
-                    Determinant =
-                    ${fractionHTML(det)}
+                    Determinant = ${toFraction(det)}
                 </p>
 
-                <h3 style="
-                    margin-top:20px;
-                    margin-bottom:5px;
-                ">
+                <h3 style="margin-top:20px;">
                     A⁻¹ =
                 </h3>
 
-                ${displayMatrix(inv)}
+                ${displayMatrix(result)}
             `
-
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         showError(error.message);
-
     }
-
 }
 
 
 /* ==========================================
-   MATRIX SQUARE
+   SQUARE
 ========================================== */
 
 function calculateSquare() {
@@ -858,44 +702,35 @@ function calculateSquare() {
 
         const A = getMatrixA();
 
-
         if (!isSquare(A)) {
 
             showError(
-                "Matrix square A² requires a square matrix."
+                "A² requires a square matrix."
             );
 
             return;
-
         }
 
-
-        const square =
+        const result =
             multiplyMatrices(A, A);
-
 
         showResult(
 
-            "² Matrix Square",
+            "² Matrix Square — A²",
 
             `
                 <p class="info">
                     A² = A × A
                 </p>
 
-                ${displayMatrix(square)}
+                ${displayMatrix(result)}
             `
-
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         showError(error.message);
-
     }
-
 }
 
 
@@ -909,31 +744,22 @@ function calculateTranspose() {
 
         const A = getMatrixA();
 
-        const T = transpose(A);
-
+        const result =
+            transpose(A);
 
         showResult(
 
-            "↕️ Transpose of Matrix A",
+            "↕️ Transpose — Aᵀ",
 
             `
-                <p class="info">
-                    Aᵀ =
-                </p>
-
-                ${displayMatrix(T)}
+                ${displayMatrix(result)}
             `
-
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         showError(error.message);
-
     }
-
 }
 
 
@@ -946,7 +772,6 @@ function showMatrixB() {
     document
         .getElementById("matrixBCard")
         .classList.remove("hidden");
-
 }
 
 
@@ -956,11 +781,16 @@ function showMatrixB() {
 
 function prepareAddition() {
 
-    showMatrixB();
+    if (currentOperation === "addition") {
 
+        calculateAddition();
+
+        return;
+    }
 
     const A = getMatrixA();
 
+    showMatrixB();
 
     document.getElementById("rowsB").value =
         A.length;
@@ -968,30 +798,61 @@ function prepareAddition() {
     document.getElementById("colsB").value =
         A[0].length;
 
-
     createMatrixB();
 
+    currentOperation = "addition";
 
     showResult(
 
-        "➕ Matrix B Required",
+        "➕ Enter Matrix B",
 
         `
             <p class="info">
-                Enter Matrix B with the same dimensions as Matrix A,
-                then click <strong>Addition</strong> again.
+                Enter Matrix B and click
+                <strong>Addition</strong> again.
             </p>
         `
-
     );
+}
 
 
-    window.currentOperation = "addition";
+/* ==========================================
+   CALCULATE ADDITION
+========================================== */
 
-    changeOperationButton(
-        "addition"
-    );
+function calculateAddition() {
 
+    try {
+
+        const A = getMatrixA();
+        const B = getMatrixB();
+
+        if (
+            A.length !== B.length ||
+            A[0].length !== B[0].length
+        ) {
+
+            showError(
+                "Matrix A and B must have the same dimensions."
+            );
+
+            return;
+        }
+
+        const result =
+            addMatrices(A, B);
+
+        showResult(
+            "➕ A + B",
+            displayMatrix(result)
+        );
+
+        currentOperation = null;
+
+    } catch (error) {
+
+        showError(error.message);
+    }
 }
 
 
@@ -1001,11 +862,16 @@ function prepareAddition() {
 
 function prepareSubtraction() {
 
-    showMatrixB();
+    if (currentOperation === "subtraction") {
 
+        calculateSubtraction();
+
+        return;
+    }
 
     const A = getMatrixA();
 
+    showMatrixB();
 
     document.getElementById("rowsB").value =
         A.length;
@@ -1013,30 +879,61 @@ function prepareSubtraction() {
     document.getElementById("colsB").value =
         A[0].length;
 
-
     createMatrixB();
 
+    currentOperation = "subtraction";
 
     showResult(
 
-        "➖ Matrix B Required",
+        "➖ Enter Matrix B",
 
         `
             <p class="info">
-                Enter Matrix B with the same dimensions as Matrix A,
-                then click <strong>Subtraction</strong> again.
+                Enter Matrix B and click
+                <strong>Subtraction</strong> again.
             </p>
         `
-
     );
+}
 
 
-    window.currentOperation = "subtraction";
+/* ==========================================
+   CALCULATE SUBTRACTION
+========================================== */
 
-    changeOperationButton(
-        "subtraction"
-    );
+function calculateSubtraction() {
 
+    try {
+
+        const A = getMatrixA();
+        const B = getMatrixB();
+
+        if (
+            A.length !== B.length ||
+            A[0].length !== B[0].length
+        ) {
+
+            showError(
+                "Matrix A and B must have the same dimensions."
+            );
+
+            return;
+        }
+
+        const result =
+            subtractMatrices(A, B);
+
+        showResult(
+            "➖ A − B",
+            displayMatrix(result)
+        );
+
+        currentOperation = null;
+
+    } catch (error) {
+
+        showError(error.message);
+    }
 }
 
 
@@ -1046,272 +943,89 @@ function prepareSubtraction() {
 
 function prepareMultiplication() {
 
-    showMatrixB();
+    if (currentOperation === "multiplication") {
 
+        calculateMultiplication();
+
+        return;
+    }
 
     const A = getMatrixA();
 
+    showMatrixB();
 
-    // B rows must equal A columns
     document.getElementById("rowsB").value =
         A[0].length;
 
-
-    // Default B columns = A rows
     document.getElementById("colsB").value =
         A.length;
 
-
     createMatrixB();
 
+    currentOperation = "multiplication";
 
     showResult(
 
-        "✖️ Matrix B Required",
+        "✖️ Enter Matrix B",
 
         `
             <p class="info">
-                For multiplication, columns of A must equal rows of B.
+                For multiplication:
             </p>
 
-            <p style="
-                margin-top:8px;
-                color:#aeb8d1;
-            ">
+            <p style="margin-top:8px;color:#aeb8d1;">
+                Columns of A must equal rows of B.
+            </p>
+
+            <p style="margin-top:8px;color:#aeb8d1;">
                 Matrix B is currently
                 ${A[0].length} × ${A.length}.
             </p>
 
-            <p style="
-                margin-top:8px;
-                color:#aeb8d1;
-            ">
+            <p style="margin-top:8px;color:#aeb8d1;">
                 Enter Matrix B and click
                 <strong>Multiplication</strong> again.
             </p>
         `
-
     );
-
-
-    window.currentOperation = "multiplication";
-
-    changeOperationButton(
-        "multiplication"
-    );
-
 }
 
 
 /* ==========================================
-   OPERATION BUTTON SECOND CLICK
+   CALCULATE MULTIPLICATION
 ========================================== */
 
-function changeOperationButton(operation) {
-
-    const buttons =
-        document.querySelectorAll(".operation-btn");
-
-
-    buttons.forEach(button => {
-
-        const text =
-            button.innerText.toLowerCase();
-
-
-        if (
-            (operation === "addition" &&
-                text.includes("addition")) ||
-
-            (operation === "subtraction" &&
-                text.includes("subtraction")) ||
-
-            (operation === "multiplication" &&
-                text.includes("multiplication"))
-        ) {
-
-            button.classList.add("active-operation");
-
-            button.dataset.ready = "true";
-
-        }
-
-    });
-
-}
-
-
-/* ==========================================
-   HANDLE ADD / SUBTRACT / MULTIPLY
-========================================== */
-
-document.addEventListener("click", function(event) {
-
-    const button =
-        event.target.closest(".operation-btn");
-
-
-    if (!button) {
-        return;
-    }
-
-
-    const text =
-        button.innerText.toLowerCase();
-
+function calculateMultiplication() {
 
     try {
 
         const A = getMatrixA();
+        const B = getMatrixB();
 
+        if (A[0].length !== B.length) {
 
-        /* ADDITION */
-
-        if (text.includes("addition")) {
-
-            if (window.currentOperation !== "addition") {
-                return;
-            }
-
-
-            const B = getMatrixB();
-
-
-            if (
-                A.length !== B.length ||
-                A[0].length !== B[0].length
-            ) {
-
-                showError(
-                    "For addition, Matrix A and Matrix B must have the same dimensions."
-                );
-
-                return;
-
-            }
-
-
-            const result =
-                addMatrices(A, B);
-
-
-            showResult(
-
-                "➕ A + B",
-
-                displayMatrix(result)
-
+            showError(
+                `Multiplication not possible. Columns of A (${A[0].length}) must equal rows of B (${B.length}).`
             );
 
-
-            window.currentOperation = null;
-
+            return;
         }
 
+        const result =
+            multiplyMatrices(A, B);
 
-        /* SUBTRACTION */
+        showResult(
+            "✖️ A × B",
+            displayMatrix(result)
+        );
 
-        else if (text.includes("subtraction")) {
+        currentOperation = null;
 
-            if (
-                window.currentOperation !==
-                "subtraction"
-            ) {
-                return;
-            }
-
-
-            const B = getMatrixB();
-
-
-            if (
-                A.length !== B.length ||
-                A[0].length !== B[0].length
-            ) {
-
-                showError(
-                    "For subtraction, Matrix A and Matrix B must have the same dimensions."
-                );
-
-                return;
-
-            }
-
-
-            const result =
-                subtractMatrices(A, B);
-
-
-            showResult(
-
-                "➖ A − B",
-
-                displayMatrix(result)
-
-            );
-
-
-            window.currentOperation = null;
-
-        }
-
-
-        /* MULTIPLICATION */
-
-        else if (text.includes("multiplication")) {
-
-            if (
-                window.currentOperation !==
-                "multiplication"
-            ) {
-                return;
-            }
-
-
-            const B = getMatrixB();
-
-
-            if (A[0].length !== B.length) {
-
-                showError(
-
-                    `Multiplication not possible. 
-                    Columns of A (${A[0].length}) 
-                    must equal rows of B (${B.length}).`
-
-                );
-
-                return;
-
-            }
-
-
-            const result =
-                multiplyMatrices(A, B);
-
-
-            showResult(
-
-                "✖️ A × B",
-
-                displayMatrix(result)
-
-            );
-
-
-            window.currentOperation = null;
-
-        }
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         showError(error.message);
-
     }
-
-});
+}
 
 
 /* ==========================================
@@ -1337,7 +1051,5 @@ function clearResult() {
             </p>
 
         </div>
-
     `;
-
 }
