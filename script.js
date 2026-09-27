@@ -1,21 +1,24 @@
-let currentOperation = null;
+/* =========================================
+   MATRIX SOLVER
+   Cij - Mij METHOD
+========================================= */
 
 
-/* =========================
-   MATRIX CREATION
-========================= */
+/* =========================================
+   MATRIX A
+========================================= */
 
 function createMatrixA() {
 
-    const rows = getNumber("rowsA");
-    const cols = getNumber("colsA");
+    const rows = Number(document.getElementById("rowsA").value);
+    const cols = Number(document.getElementById("colsA").value);
 
     const container = document.getElementById("matrixA");
 
     container.innerHTML = "";
 
     container.style.gridTemplateColumns =
-        `repeat(${cols}, 72px)`;
+        `repeat(${cols}, 68px)`;
 
     for (let i = 0; i < rows; i++) {
 
@@ -23,65 +26,36 @@ function createMatrixA() {
 
             const input = document.createElement("input");
 
-            input.type = "text";
-            input.inputMode = "decimal";
+            input.type = "number";
+            input.step = "any";
             input.className = "matrix-input";
+
             input.placeholder = "0";
 
-            input.addEventListener("input", updateMatrixInfo);
+            input.dataset.row = i;
+            input.dataset.col = j;
+
+            input.addEventListener("input", updateMatrixStatus);
 
             container.appendChild(input);
         }
     }
 
-    updateMatrixInfo();
+    updateMatrixStatus();
 }
 
 
-/* =========================
-   MATRIX B
-========================= */
+/* =========================================
+   GET MATRIX A
+========================================= */
 
-function createMatrixB() {
+function getMatrixA() {
 
-    const rows = getNumber("rowsB");
-    const cols = getNumber("colsB");
-
-    const container = document.getElementById("matrixB");
-
-    container.innerHTML = "";
-
-    container.style.gridTemplateColumns =
-        `repeat(${cols}, 72px)`;
-
-    for (let i = 0; i < rows; i++) {
-
-        for (let j = 0; j < cols; j++) {
-
-            const input = document.createElement("input");
-
-            input.type = "text";
-            input.inputMode = "decimal";
-            input.className = "matrix-input";
-            input.placeholder = "0";
-
-            container.appendChild(input);
-        }
-    }
-}
-
-
-/* =========================
-   GET MATRIX
-========================= */
-
-function getMatrix(id, rowsId, colsId) {
-
-    const rows = getNumber(rowsId);
-    const cols = getNumber(colsId);
+    const rows = Number(document.getElementById("rowsA").value);
+    const cols = Number(document.getElementById("colsA").value);
 
     const inputs =
-        document.querySelectorAll(`#${id} .matrix-input`);
+        document.querySelectorAll("#matrixA input");
 
     const matrix = [];
 
@@ -93,19 +67,12 @@ function getMatrix(id, rowsId, colsId) {
 
         for (let j = 0; j < cols; j++) {
 
-            let value = inputs[index].value.trim();
+            const value =
+                parseFloat(inputs[index].value);
 
-            if (value === "") value = "0";
-
-            const number = Number(value);
-
-            if (!Number.isFinite(number)) {
-                throw new Error(
-                    `Invalid value at row ${i + 1}, column ${j + 1}.`
-                );
-            }
-
-            row.push(number);
+            row.push(
+                Number.isFinite(value) ? value : 0
+            );
 
             index++;
         }
@@ -117,38 +84,120 @@ function getMatrix(id, rowsId, colsId) {
 }
 
 
-function getMatrixA() {
-    return getMatrix("matrixA", "rowsA", "colsA");
+/* =========================================
+   MATRIX B
+========================================= */
+
+function createMatrixB() {
+
+    const rows = Number(document.getElementById("rowsB").value);
+    const cols = Number(document.getElementById("colsB").value);
+
+    const container =
+        document.getElementById("matrixB");
+
+    container.innerHTML = "";
+
+    container.style.gridTemplateColumns =
+        `repeat(${cols}, 68px)`;
+
+    for (let i = 0; i < rows; i++) {
+
+        for (let j = 0; j < cols; j++) {
+
+            const input = document.createElement("input");
+
+            input.type = "number";
+            input.step = "any";
+
+            input.className = "matrix-input";
+
+            input.placeholder = "0";
+
+            container.appendChild(input);
+        }
+    }
 }
 
 
 function getMatrixB() {
-    return getMatrix("matrixB", "rowsB", "colsB");
-}
 
+    const rows = Number(document.getElementById("rowsB").value);
+    const cols = Number(document.getElementById("colsB").value);
 
-/* =========================
-   NUMBER
-========================= */
+    const inputs =
+        document.querySelectorAll("#matrixB input");
 
-function getNumber(id) {
+    const matrix = [];
 
-    let value =
-        parseInt(document.getElementById(id).value);
+    let index = 0;
 
-    if (!Number.isFinite(value) || value < 1) {
-        value = 1;
+    for (let i = 0; i < rows; i++) {
+
+        const row = [];
+
+        for (let j = 0; j < cols; j++) {
+
+            const value =
+                parseFloat(inputs[index].value);
+
+            row.push(
+                Number.isFinite(value) ? value : 0
+            );
+
+            index++;
+        }
+
+        matrix.push(row);
     }
 
-    if (value > 10) value = 10;
-
-    return value;
+    return matrix;
 }
 
 
-/* =========================
+/* =========================================
+   FORMAT NUMBER
+========================================= */
+
+function formatNumber(value) {
+
+    if (Math.abs(value) < 1e-10) {
+        return "0";
+    }
+
+    return Number(value.toFixed(6)).toString();
+}
+
+
+/* =========================================
+   MATRIX VALIDATION
+========================================= */
+
+function isSquare(matrix) {
+
+    return matrix.length > 0 &&
+           matrix.length === matrix[0].length;
+}
+
+
+/* =========================================
+   MINOR Mij
+========================================= */
+
+function getMinor(matrix, row, col) {
+
+    return matrix
+        .filter((_, i) => i !== row)
+        .map(r =>
+            r.filter((_, j) => j !== col)
+        );
+}
+
+
+/* =========================================
    DETERMINANT
-========================= */
+   INTERNAL CALCULATION
+========================================= */
 
 function determinant(matrix) {
 
@@ -161,1510 +210,1403 @@ function determinant(matrix) {
     if (n === 2) {
 
         return (
-            matrix[0][0] * matrix[1][1] -
+            matrix[0][0] * matrix[1][1]
+            -
             matrix[0][1] * matrix[1][0]
         );
     }
 
     let det = 0;
 
-    for (let col = 0; col < n; col++) {
+    for (let j = 0; j < n; j++) {
 
-        const minor = matrix
-            .slice(1)
-            .map(row =>
-                row.filter((_, index) => index !== col)
-            );
+        const minor =
+            getMinor(matrix, 0, j);
+
+        const minorDet =
+            determinant(minor);
+
+        const cofactor =
+            Math.pow(-1, j) * minorDet;
 
         det +=
-            matrix[0][col] *
-            Math.pow(-1, col) *
-            determinant(minor);
+            matrix[0][j] * cofactor;
     }
 
     return det;
 }
 
 
-/* =========================
-   DETERMINANT EXPLANATION
-========================= */
+/* =========================================
+   Cij
+========================================= */
 
-function determinantExplanation(matrix) {
+function getCofactor(matrix, row, col) {
+
+    const minor =
+        getMinor(matrix, row, col);
+
+    return (
+        Math.pow(-1, row + col) *
+        determinant(minor)
+    );
+}
+
+
+/* =========================================
+   MATRIX DISPLAY HTML
+========================================= */
+
+function matrixHTML(matrix) {
+
+    const rows = matrix.length;
+    const cols = matrix[0].length;
+
+    let html =
+        `<div class="result-matrix"
+              style="grid-template-columns:repeat(${cols},minmax(60px,1fr))">`;
+
+    for (let i = 0; i < rows; i++) {
+
+        for (let j = 0; j < cols; j++) {
+
+            html += `
+                <div class="result-cell">
+                    ${formatNumber(matrix[i][j])}
+                </div>
+            `;
+        }
+    }
+
+    html += `</div>`;
+
+    return html;
+}
+
+
+/* =========================================
+   MINOR MATRIX HTML
+========================================= */
+
+function minorHTML(matrix, row, col) {
+
+    const minor =
+        getMinor(matrix, row, col);
+
+    return matrixHTML(minor);
+}
+
+
+/* =========================================
+   SHOW RESULT
+========================================= */
+
+function showResult(title, content) {
+
+    const card =
+        document.getElementById("resultCard");
+
+    const titleElement =
+        document.getElementById("resultTitle");
+
+    const contentElement =
+        document.getElementById("resultContent");
+
+    titleElement.textContent = title;
+
+    contentElement.innerHTML = content;
+
+    card.classList.remove("hidden");
+
+    card.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+
+/* =========================================
+   DETERMINANT
+   C11 / M11 METHOD
+========================================= */
+
+function calculateDeterminant() {
+
+    const matrix = getMatrixA();
+
+    if (!isSquare(matrix)) {
+
+        showResult(
+            "Determinant",
+            `
+            <div class="error-message">
+                ❌ Determinant can be calculated only
+                for a square matrix.
+            </div>
+            `
+        );
+
+        return;
+    }
 
     const n = matrix.length;
 
-    let html = `
-        <div class="steps">
+    const det = determinant(matrix);
 
-            <div class="step">
-                <span class="step-number">1</span>
-                <div>
-                    <h3>Given Matrix</h3>
-                    ${displayMatrix(matrix)}
-                </div>
+    let html = `
+        <div class="calculation-intro">
+            <strong>Determinant using C<sub>ij</sub> and M<sub>ij</sub> method</strong>
+
+            <p>
+                Expand the determinant along the first row:
+            </p>
+
+            <div class="formula">
+                |A| =
+                a<sub>11</sub>C<sub>11</sub>
+                +
+                a<sub>12</sub>C<sub>12</sub>
+                +
+                ...
             </div>
+        </div>
     `;
 
 
-    /* ---------- 1 × 1 ---------- */
+    /* =====================================
+       1 × 1
+    ===================================== */
 
     if (n === 1) {
 
         html += `
             <div class="step">
-                <span class="step-number">2</span>
+                <div class="step-number">1</div>
+
                 <div>
-                    <h3>Determinant</h3>
+                    <h3>Single element</h3>
+
                     <p>
-                        det(A) = ${formatNumber(matrix[0][0])}
+                        |A| = ${formatNumber(matrix[0][0])}
+                    </p>
+
+                    <p class="final-line">
+                        ∴ |A| = ${formatNumber(det)}
                     </p>
                 </div>
             </div>
         `;
-
-        return html + `</div>`;
     }
 
 
-    /* ---------- 2 × 2 ---------- */
+    /* =====================================
+       2 × 2
+    ===================================== */
 
-    if (n === 2) {
+    else if (n === 2) {
 
         const a = matrix[0][0];
         const b = matrix[0][1];
         const c = matrix[1][0];
         const d = matrix[1][1];
 
-        const ad = a * d;
-        const bc = b * c;
-        const det = ad - bc;
+        const M11 = d;
+        const M12 = c;
 
+        const C11 = M11;
+        const C12 = -M12;
 
         html += `
+
             <div class="step">
-                <span class="step-number">2</span>
 
-                <div>
-                    <h3>Use the 2 × 2 determinant formula</h3>
-
-                    <div class="formula">
-                        det(A) = ad − bc
-                    </div>
-
-                    <p>
-                        det(A)
-                        = (${formatNumber(a)} × ${formatNumber(d)})
-                        −
-                        (${formatNumber(b)} × ${formatNumber(c)})
-                    </p>
-
-                    <p>
-                        = ${formatNumber(ad)}
-                        −
-                        ${formatNumber(bc)}
-                    </p>
-
-                    <p class="final-line">
-                        det(A) = ${formatNumber(det)}
-                    </p>
+                <div class="step-number">
+                    1
                 </div>
-            </div>
-        `;
-
-        return html + `</div>`;
-    }
-
-
-    /* ---------- 3 × 3 ---------- */
-
-    if (n === 3) {
-
-        const a = matrix[0][0];
-        const b = matrix[0][1];
-        const c = matrix[0][2];
-
-        const d = matrix[1][0];
-        const e = matrix[1][1];
-        const f = matrix[1][2];
-
-        const g = matrix[2][0];
-        const h = matrix[2][1];
-        const i = matrix[2][2];
-
-
-        const term1 =
-            a * (e * i - f * h);
-
-        const term2 =
-            b * (d * i - f * g);
-
-        const term3 =
-            c * (d * h - e * g);
-
-        const det =
-            term1 - term2 + term3;
-
-
-        html += `
-            <div class="step">
-                <span class="step-number">2</span>
 
                 <div>
 
-                    <h3>Expand along the first row</h3>
+                    <h3>Find M₁₁</h3>
+
+                    <p>
+                        Delete row 1 and column 1.
+                    </p>
 
                     <div class="formula">
-                        det(A)
-                        = a(ei − fh)
-                        − b(di − fg)
-                        + c(dh − eg)
+                        M₁₁ = ${formatNumber(d)}
                     </div>
 
                 </div>
+
             </div>
 
 
             <div class="step">
-                <span class="step-number">3</span>
 
-                <div>
-
-                    <h3>Substitute the values</h3>
-
-                    <p>
-                        det(A)
-                        =
-                        ${formatNumber(a)}
-                        (${formatNumber(e)}×${formatNumber(i)}
-                        −
-                        ${formatNumber(f)}×${formatNumber(h)})
-                    </p>
-
-                    <p>
-                        −
-                        ${formatNumber(b)}
-                        (${formatNumber(d)}×${formatNumber(i)}
-                        −
-                        ${formatNumber(f)}×${formatNumber(g)})
-                    </p>
-
-                    <p>
-                        +
-                        ${formatNumber(c)}
-                        (${formatNumber(d)}×${formatNumber(h)}
-                        −
-                        ${formatNumber(e)}×${formatNumber(g)})
-                    </p>
-
+                <div class="step-number">
+                    2
                 </div>
-            </div>
-
-
-            <div class="step">
-                <span class="step-number">4</span>
 
                 <div>
 
-                    <h3>Calculate the three terms</h3>
-
-                    <p>
-                        Term 1 = ${formatNumber(term1)}
-                    </p>
-
-                    <p>
-                        Term 2 = ${formatNumber(term2)}
-                    </p>
-
-                    <p>
-                        Term 3 = ${formatNumber(term3)}
-                    </p>
-
-                </div>
-            </div>
-
-
-            <div class="step">
-                <span class="step-number">5</span>
-
-                <div>
-
-                    <h3>Final calculation</h3>
+                    <h3>Find C₁₁</h3>
 
                     <div class="formula">
-                        det(A)
-                        =
-                        ${formatNumber(term1)}
-                        −
-                        ${formatNumber(term2)}
+                        C₁₁ = (−1)¹⁺¹ M₁₁
+                        = ${formatNumber(C11)}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="step">
+
+                <div class="step-number">
+                    3
+                </div>
+
+                <div>
+
+                    <h3>Find M₁₂ and C₁₂</h3>
+
+                    <div class="formula">
+                        M₁₂ = ${formatNumber(c)}
+                        <br>
+                        C₁₂ = (−1)¹⁺² M₁₂
+                        = ${formatNumber(C12)}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="step">
+
+                <div class="step-number">
+                    4
+                </div>
+
+                <div>
+
+                    <h3>Calculate determinant</h3>
+
+                    <div class="formula">
+                        |A| =
+                        (${formatNumber(a)})(${formatNumber(C11)})
                         +
-                        ${formatNumber(term3)}
+                        (${formatNumber(b)})(${formatNumber(C12)})
                     </div>
 
                     <p class="final-line">
-                        det(A) = ${formatNumber(det)}
+                        ∴ |A| = ${formatNumber(det)}
                     </p>
 
                 </div>
+
             </div>
         `;
-
-        return html + `</div>`;
     }
 
 
-    /* ---------- Larger matrices ---------- */
+    /* =====================================
+       3 × 3 AND ABOVE
+    ===================================== */
+
+    else {
+
+        let expansion = "";
+
+        for (let j = 0; j < n; j++) {
+
+            const minor =
+                getMinor(matrix, 0, j);
+
+            const M =
+                determinant(minor);
+
+            const C =
+                Math.pow(-1, j) * M;
+
+            const element =
+                matrix[0][j];
+
+            expansion += `
+                <div class="cofactor-card">
+
+                    <div class="cofactor-title">
+                        M<sub>1${j + 1}</sub>
+                        &nbsp; and &nbsp;
+                        C<sub>1${j + 1}</sub>
+                    </div>
+
+                    <p>
+                        M<sub>1${j + 1}</sub>
+                        =
+                    </p>
+
+                    ${minorHTML(matrix, 0, j)}
+
+                    <div class="formula">
+
+                        M<sub>1${j + 1}</sub>
+                        =
+                        ${formatNumber(M)}
+
+                        <br><br>
+
+                        C<sub>1${j + 1}</sub>
+                        =
+                        (−1)¹⁺${j + 1}
+                        M<sub>1${j + 1}</sub>
+
+                        =
+                        ${formatNumber(C)}
+
+                    </div>
+
+                    <p>
+                        a<sub>1${j + 1}</sub>
+                        C<sub>1${j + 1}</sub>
+                        =
+                        (${formatNumber(element)})
+                        (${formatNumber(C)})
+                        =
+                        ${formatNumber(element * C)}
+                    </p>
+
+                </div>
+            `;
+        }
+
+
+        html += `
+
+            <div class="step">
+
+                <div class="step-number">
+                    1
+                </div>
+
+                <div>
+
+                    <h3>
+                        Find M₁₁ and C₁₁
+                    </h3>
+
+                    <p>
+                        Delete the first row and first column
+                        to obtain M₁₁.
+                    </p>
+
+                    ${minorHTML(matrix, 0, 0)}
+
+                    <div class="formula">
+
+                        M₁₁ =
+                        ${formatNumber(
+                            determinant(
+                                getMinor(matrix,0,0)
+                            )
+                        )}
+
+                        <br>
+
+                        C₁₁ =
+                        (−1)¹⁺¹M₁₁
+                        =
+                        ${formatNumber(
+                            getCofactor(matrix,0,0)
+                        )}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="step">
+
+                <div class="step-number">
+                    2
+                </div>
+
+                <div>
+
+                    <h3>
+                        Find all M₁ⱼ and C₁ⱼ
+                    </h3>
+
+                    ${expansion}
+
+                </div>
+
+            </div>
+
+
+            <div class="step">
+
+                <div class="step-number">
+                    3
+                </div>
+
+                <div>
+
+                    <h3>
+                        Expand along the first row
+                    </h3>
+
+                    <div class="formula">
+
+                        |A| =
+                        ${matrix[0].map(
+                            (_,j) =>
+                            `a<sub>1${j+1}</sub>
+                             C<sub>1${j+1}</sub>`
+                        ).join(" + ")}
+
+                    </div>
+
+                    <div class="formula">
+
+                        |A| =
+                        ${matrix[0].map(
+                            (value,j) => {
+
+                                const C =
+                                    getCofactor(
+                                        matrix,
+                                        0,
+                                        j
+                                    );
+
+                                return `
+                                    (${formatNumber(value)})
+                                    (${formatNumber(C)})
+                                `;
+                            }
+                        ).join(" + ")}
+
+                    </div>
+
+                    <p class="final-line">
+
+                        ∴ |A| = ${formatNumber(det)}
+
+                    </p>
+
+                </div>
+
+            </div>
+        `;
+    }
+
+
+    html += `
+
+        <div class="answer-box">
+
+            <span>FINAL ANSWER</span>
+
+            <strong>
+                det(A) = ${formatNumber(det)}
+            </strong>
+
+        </div>
+    `;
+
+
+    showResult(
+        "Determinant — Cij / Mij Method",
+        html
+    );
+
+
+    document.getElementById("detValue").textContent =
+        formatNumber(det);
+
+
+    const inverseStatus =
+        document.getElementById("inverseStatus");
+
+    if (det === 0) {
+
+        inverseStatus.textContent =
+            "Does not exist";
+
+        inverseStatus.className =
+            "error";
+
+    } else {
+
+        inverseStatus.textContent =
+            "Exists ✓";
+
+        inverseStatus.className =
+            "success";
+    }
+}
+
+
+/* =========================================
+   INVERSE
+   ADJOINT / COFACTOR METHOD
+========================================= */
+
+function calculateInverse() {
+
+    const matrix = getMatrixA();
+
+    if (!isSquare(matrix)) {
+
+        showResult(
+            "Inverse",
+            `
+            <div class="error-message">
+                ❌ Inverse exists only for a square matrix.
+            </div>
+            `
+        );
+
+        return;
+    }
+
 
     const det = determinant(matrix);
 
-    html += `
-        <div class="step">
-            <span class="step-number">2</span>
 
-            <div>
+    if (Math.abs(det) < 1e-10) {
 
-                <h3>Cofactor expansion</h3>
+        showResult(
+            "Inverse Does Not Exist",
+            `
+
+            <div class="not-exist-box">
+
+                <div class="big-cross">
+                    ✕
+                </div>
+
+                <h3>
+                    Inverse does not exist
+                </h3>
 
                 <p>
-                    The determinant is calculated by expanding
-                    along the first row using cofactors.
+                    The determinant of the matrix is zero.
                 </p>
 
                 <div class="formula">
-                    det(A) = Σ a₁ⱼC₁ⱼ
+                    det(A) = 0
                 </div>
 
                 <p>
-                    For this ${n} × ${n} matrix, the same
-                    cofactor-expansion process is applied
-                    recursively to the smaller minors.
+                    Since det(A) = 0,
+                    the matrix is singular.
+                </p>
+
+                <p class="final-line">
+                    Therefore, A⁻¹ does not exist.
                 </p>
 
             </div>
+
+            `
+        );
+
+        document.getElementById(
+            "inverseStatus"
+        ).textContent = "Does not exist";
+
+        document.getElementById(
+            "inverseStatus"
+        ).className = "error";
+
+        return;
+    }
+
+
+    const n = matrix.length;
+
+    const cofactorMatrix = [];
+
+    for (let i = 0; i < n; i++) {
+
+        const row = [];
+
+        for (let j = 0; j < n; j++) {
+
+            row.push(
+                getCofactor(matrix, i, j)
+            );
+        }
+
+        cofactorMatrix.push(row);
+    }
+
+
+    const adjoint = transpose(cofactorMatrix);
+
+
+    const inverse = adjoint.map(
+        row =>
+            row.map(
+                value => value / det
+            )
+    );
+
+
+    let html = `
+
+        <div class="calculation-intro">
+
+            <strong>
+                Inverse using Adjoint / Cofactor Method
+            </strong>
+
+            <div class="formula">
+                A⁻¹ = 1 / |A| × adj(A)
+            </div>
+
+            <p>
+                First check whether the inverse exists.
+            </p>
+
+            <div class="answer-box compact">
+
+                <span>DETERMINANT</span>
+
+                <strong>
+                    |A| = ${formatNumber(det)} ≠ 0
+                </strong>
+
+                <small>
+                    Therefore, inverse exists ✓
+                </small>
+
+            </div>
+
         </div>
 
 
         <div class="step">
-            <span class="step-number">3</span>
+
+            <div class="step-number">
+                1
+            </div>
 
             <div>
 
-                <h3>Calculated determinant</h3>
+                <h3>
+                    Find the minor matrix
+                </h3>
 
-                <p class="final-line">
-                    det(A) = ${formatNumber(det)}
+                <p>
+                    Find M<sub>ij</sub> for every element.
                 </p>
 
+                <div class="minor-grid">
+    `;
+
+
+    for (let i = 0; i < n; i++) {
+
+        for (let j = 0; j < n; j++) {
+
+            const M =
+                determinant(
+                    getMinor(matrix,i,j)
+                );
+
+            html += `
+                <div class="mini-cofactor">
+
+                    <strong>
+                        M<sub>${i+1}${j+1}</sub>
+                    </strong>
+
+                    <span>
+                        ${formatNumber(M)}
+                    </span>
+
+                </div>
+            `;
+        }
+    }
+
+
+    html += `
+                </div>
+
             </div>
+
+        </div>
+
+
+        <div class="step">
+
+            <div class="step-number">
+                2
+            </div>
+
+            <div>
+
+                <h3>
+                    Find the cofactor matrix
+                </h3>
+
+                <div class="formula">
+                    C<sub>ij</sub>
+                    =
+                    (−1)<sup>i+j</sup>
+                    M<sub>ij</sub>
+                </div>
+
+                ${matrixHTML(cofactorMatrix)}
+
+            </div>
+
+        </div>
+
+
+        <div class="step">
+
+            <div class="step-number">
+                3
+            </div>
+
+            <div>
+
+                <h3>
+                    Find the adjoint
+                </h3>
+
+                <p>
+                    Adjoint is the transpose of the
+                    cofactor matrix.
+                </p>
+
+                <div class="formula">
+                    adj(A) = [C]
+                    <sup>T</sup>
+                </div>
+
+                ${matrixHTML(adjoint)}
+
+            </div>
+
+        </div>
+
+
+        <div class="step">
+
+            <div class="step-number">
+                4
+            </div>
+
+            <div>
+
+                <h3>
+                    Calculate inverse
+                </h3>
+
+                <div class="formula">
+                    A⁻¹ =
+                    1 / ${formatNumber(det)}
+                    × adj(A)
+                </div>
+
+                ${matrixHTML(inverse)}
+
+            </div>
+
+        </div>
+
+
+        <div class="answer-box">
+
+            <span>FINAL ANSWER</span>
+
+            <strong>
+                A⁻¹ =
+            </strong>
+
+            ${matrixHTML(inverse)}
+
         </div>
     `;
 
 
-    return html + `</div>`;
-}
-
-
-/* =========================
-   INVERSE
-========================= */
-
-function inverse(matrix) {
-
-    const n = matrix.length;
-
-    if (matrix.some(row => row.length !== n)) {
-        return null;
-    }
-
-    const augmented =
-        matrix.map((row, i) => [
-
-            ...row,
-
-            ...Array.from(
-                { length: n },
-                (_, j) => i === j ? 1 : 0
-            )
-
-        ]);
-
-
-    for (let col = 0; col < n; col++) {
-
-        let pivot = col;
-
-        for (let row = col + 1; row < n; row++) {
-
-            if (
-                Math.abs(augmented[row][col])
-                >
-                Math.abs(augmented[pivot][col])
-            ) {
-                pivot = row;
-            }
-        }
-
-
-        if (Math.abs(augmented[pivot][col]) < 1e-10) {
-            return null;
-        }
-
-
-        [augmented[col], augmented[pivot]] =
-            [augmented[pivot], augmented[col]];
-
-
-        const pivotValue =
-            augmented[col][col];
-
-
-        for (let j = 0; j < 2 * n; j++) {
-
-            augmented[col][j] /= pivotValue;
-        }
-
-
-        for (let row = 0; row < n; row++) {
-
-            if (row === col) continue;
-
-            const factor =
-                augmented[row][col];
-
-            for (let j = 0; j < 2 * n; j++) {
-
-                augmented[row][j] -=
-                    factor * augmented[col][j];
-            }
-        }
-    }
-
-
-    return augmented.map(row =>
-        row.slice(n)
+    showResult(
+        "Inverse — Adjoint / Cofactor Method",
+        html
     );
+
+
+    document.getElementById(
+        "inverseStatus"
+    ).textContent = "Exists ✓";
+
+    document.getElementById(
+        "inverseStatus"
+    ).className = "success";
 }
 
 
-/* =========================
-   INVERSE WITH STEPS
-========================= */
-
-function inverseWithSteps(matrix) {
-
-    const n = matrix.length;
-
-    const augmented =
-        matrix.map((row, i) => [
-
-            ...row,
-
-            ...Array.from(
-                { length: n },
-                (_, j) => i === j ? 1 : 0
-            )
-
-        ]);
-
-
-    const steps = [];
-
-
-    steps.push({
-        operation: "Start with the augmented matrix [ A | I ]",
-        matrix: cloneMatrix(augmented)
-    });
-
-
-    for (let col = 0; col < n; col++) {
-
-        let pivot = col;
-
-
-        for (let row = col + 1; row < n; row++) {
-
-            if (
-                Math.abs(augmented[row][col])
-                >
-                Math.abs(augmented[pivot][col])
-            ) {
-
-                pivot = row;
-            }
-        }
-
-
-        if (Math.abs(augmented[pivot][col]) < 1e-10) {
-
-            return null;
-        }
-
-
-        /* Row swap */
-
-        if (pivot !== col) {
-
-            [augmented[col], augmented[pivot]] =
-                [augmented[pivot], augmented[col]];
-
-
-            steps.push({
-                operation:
-                    `R${col + 1} ↔ R${pivot + 1}`,
-                matrix:
-                    cloneMatrix(augmented)
-            });
-        }
-
-
-        /* Make pivot = 1 */
-
-        const pivotValue =
-            augmented[col][col];
-
-
-        if (Math.abs(pivotValue - 1) > 1e-10) {
-
-            for (let j = 0; j < 2 * n; j++) {
-
-                augmented[col][j] /=
-                    pivotValue;
-            }
-
-
-            steps.push({
-                operation:
-                    `R${col + 1} → R${col + 1} ÷ ${formatNumber(pivotValue)}`,
-
-                matrix:
-                    cloneMatrix(augmented)
-            });
-        }
-
-
-        /* Eliminate column */
-
-        for (let row = 0; row < n; row++) {
-
-            if (row === col) continue;
-
-
-            const factor =
-                augmented[row][col];
-
-
-            if (Math.abs(factor) < 1e-10) {
-                continue;
-            }
-
-
-            for (let j = 0; j < 2 * n; j++) {
-
-                augmented[row][j] -=
-                    factor * augmented[col][j];
-            }
-
-
-            const sign =
-                factor >= 0 ? "−" : "+";
-
-            const amount =
-                Math.abs(factor);
-
-
-            steps.push({
-
-                operation:
-                    `R${row + 1} → R${row + 1} ${sign} ${formatNumber(amount)}R${col + 1}`,
-
-                matrix:
-                    cloneMatrix(augmented)
-            });
-        }
-    }
-
-
-    return {
-        inverse:
-            augmented.map(row =>
-                row.slice(n)
-            ),
-
-        steps
-    };
-}
-
-
-/* =========================
-   CLONE MATRIX
-========================= */
-
-function cloneMatrix(matrix) {
-
-    return matrix.map(row => [...row]);
-}
-
-
-/* =========================
-   DISPLAY AUGMENTED MATRIX
-========================= */
-
-function displayAugmentedMatrix(matrix) {
-
-    const totalCols = matrix[0].length;
-
-    let html = `
-        <div
-            class="result-matrix augmented-matrix"
-            style="
-                grid-template-columns:
-                repeat(${totalCols}, minmax(55px, 1fr));
-            "
-        >
-    `;
-
-
-    matrix.forEach((row, rowIndex) => {
-
-        row.forEach((value, colIndex) => {
-
-            const separator =
-                colIndex === matrix.length
-                ? " augmented-separator"
-                : "";
-
-
-            html += `
-                <div class="result-cell${separator}">
-                    ${formatNumber(value)}
-                </div>
-            `;
-        });
-    });
-
-
-    html += "</div>";
-
-    return html;
-}
-
-
-/* =========================
-   SQUARE
-========================= */
-
-function square(matrix) {
-
-    return multiplyMatrices(matrix, matrix);
-}
-
-
-/* =========================
+/* =========================================
    TRANSPOSE
-========================= */
+========================================= */
 
 function transpose(matrix) {
 
     return matrix[0].map(
         (_, col) =>
-            matrix.map(row => row[col])
+            matrix.map(
+                row => row[col]
+            )
     );
 }
 
 
-/* =========================
-   ADDITION
-========================= */
+function calculateTranspose() {
 
-function addMatrices(A, B) {
+    const matrix = getMatrixA();
 
-    if (
-        A.length !== B.length ||
-        A[0].length !== B[0].length
-    ) {
-        return null;
+    const result = transpose(matrix);
+
+    showResult(
+        "Transpose",
+        `
+
+        <div class="calculation-intro">
+
+            <strong>
+                Transpose of Matrix A
+            </strong>
+
+            <p>
+                Rows become columns and columns become rows.
+            </p>
+
+        </div>
+
+        ${matrixHTML(result)}
+
+        <div class="answer-box">
+
+            <span>FINAL ANSWER</span>
+
+            <strong>
+                Aᵀ calculated successfully ✓
+            </strong>
+
+        </div>
+
+        `
+    );
+}
+
+
+/* =========================================
+   MATRIX SQUARE
+========================================= */
+
+function calculateSquare() {
+
+    const matrix = getMatrixA();
+
+    if (!isSquare(matrix)) {
+
+        showResult(
+            "Matrix Square",
+            `
+            <div class="error-message">
+                ❌ A² can only be calculated for a square matrix.
+            </div>
+            `
+        );
+
+        return;
     }
 
-    return A.map((row, i) =>
-        row.map(
-            (value, j) =>
-                value + B[i][j]
-        )
+
+    const result =
+        multiplyMatrices(matrix, matrix);
+
+
+    showResult(
+        "Matrix Square — A²",
+        `
+
+        <div class="calculation-intro">
+
+            <strong>
+                Matrix Square
+            </strong>
+
+            <div class="formula">
+                A² = A × A
+            </div>
+
+        </div>
+
+
+        <div class="step">
+
+            <div class="step-number">
+                1
+            </div>
+
+            <div>
+
+                <h3>
+                    Multiply A by A
+                </h3>
+
+                ${matrixHTML(matrix)}
+
+                <div class="formula">
+                    A² = A × A
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="step">
+
+            <div class="step-number">
+                2
+            </div>
+
+            <div>
+
+                <h3>
+                    Result
+                </h3>
+
+                ${matrixHTML(result)}
+
+            </div>
+
+        </div>
+
+
+        <div class="answer-box">
+
+            <span>FINAL ANSWER</span>
+
+            <strong>
+                A² = A × A
+            </strong>
+
+            ${matrixHTML(result)}
+
+        </div>
+
+        `
     );
 }
 
 
-/* =========================
-   SUBTRACTION
-========================= */
-
-function subtractMatrices(A, B) {
-
-    if (
-        A.length !== B.length ||
-        A[0].length !== B[0].length
-    ) {
-        return null;
-    }
-
-    return A.map((row, i) =>
-        row.map(
-            (value, j) =>
-                value - B[i][j]
-        )
-    );
-}
-
-
-/* =========================
-   MULTIPLICATION
-========================= */
+/* =========================================
+   MATRIX MULTIPLICATION
+========================================= */
 
 function multiplyMatrices(A, B) {
 
-    if (A[0].length !== B.length) {
-        return null;
-    }
-
-    const result =
-        Array.from(
-            { length: A.length },
-            () =>
-                Array(B[0].length).fill(0)
-        );
-
+    const result = [];
 
     for (let i = 0; i < A.length; i++) {
 
+        const row = [];
+
         for (let j = 0; j < B[0].length; j++) {
+
+            let sum = 0;
 
             for (let k = 0; k < B.length; k++) {
 
-                result[i][j] +=
+                sum +=
                     A[i][k] * B[k][j];
             }
+
+            row.push(sum);
         }
+
+        result.push(row);
     }
 
     return result;
 }
 
 
-/* =========================
-   FORMAT
-========================= */
-
-function formatNumber(number) {
-
-    if (Math.abs(number) < 1e-10) {
-        number = 0;
-    }
-
-    return Number(
-        number.toFixed(6)
-    );
-}
-
-
-/* =========================
-   DISPLAY MATRIX
-========================= */
-
-function displayMatrix(matrix) {
-
-    const rows = matrix.length;
-    const cols = matrix[0].length;
-
-    let html = `
-        <div
-            class="result-matrix"
-            style="
-                grid-template-columns:
-                repeat(${cols}, minmax(60px, 1fr));
-            "
-        >
-    `;
-
-
-    matrix.forEach(row => {
-
-        row.forEach(value => {
-
-            html += `
-                <div class="result-cell">
-                    ${formatNumber(value)}
-                </div>
-            `;
-        });
-    });
-
-
-    html += "</div>";
-
-    return html;
-}
-
-
-/* =========================
-   RESULT
-========================= */
-
-function showResult(title, content) {
-
-    document.getElementById("resultTitle")
-        .textContent = title;
-
-    document.getElementById("resultContent")
-        .innerHTML = content;
-
-    document.getElementById("resultCard")
-        .classList.remove("hidden");
-
-    document.getElementById("resultCard")
-        .scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-}
-
-
-/* =========================
-   LIVE INFO
-========================= */
-
-function updateMatrixInfo() {
-
-    try {
-
-        const A = getMatrixA();
-
-        const rows = A.length;
-        const cols = A[0].length;
-
-
-        document.getElementById("matrixSize")
-            .textContent =
-            `${rows} × ${cols}`;
-
-
-        if (rows === cols) {
-
-            const det =
-                determinant(A);
-
-
-            document.getElementById("detValue")
-                .textContent =
-                formatNumber(det);
-
-
-            if (Math.abs(det) > 1e-10) {
-
-                document.getElementById("inverseStatus")
-                    .textContent =
-                    "✓ Exists";
-
-                document.getElementById("inverseStatus")
-                    .className =
-                    "success";
-
-            } else {
-
-                document.getElementById("inverseStatus")
-                    .textContent =
-                    "✕ Does not exist";
-
-                document.getElementById("inverseStatus")
-                    .className =
-                    "error";
-            }
-
-        } else {
-
-            document.getElementById("detValue")
-                .textContent =
-                "Not square";
-
-            document.getElementById("inverseStatus")
-                .textContent =
-                "Not possible";
-
-            document.getElementById("inverseStatus")
-                .className =
-                "warning";
-        }
-
-    } catch {
-
-        document.getElementById("detValue")
-            .textContent = "—";
-
-        document.getElementById("inverseStatus")
-            .textContent =
-            "Check input";
-    }
-}
-
-
-/* =========================
-   DETERMINANT RESULT
-========================= */
-
-function calculateDeterminant() {
-
-    try {
-
-        const A = getMatrixA();
-
-
-        if (A.length !== A[0].length) {
-
-            showResult(
-                "Determinant",
-                `
-                    <p class="error">
-                        ✕ Determinant is defined only
-                        for a square matrix.
-                    </p>
-                `
-            );
-
-            return;
-        }
-
-
-        const det =
-            determinant(A);
-
-
-        showResult(
-            "Step-by-Step Determinant",
-            `
-                <h3>
-                    Final Answer:
-                    det(A) = ${formatNumber(det)}
-                </h3>
-
-                ${determinantExplanation(A)}
-            `
-        );
-
-    } catch (error) {
-
-        showError(error.message);
-    }
-}
-
-
-/* =========================
-   INVERSE RESULT
-========================= */
-
-function calculateInverse() {
-
-    try {
-
-        const A = getMatrixA();
-
-
-        if (A.length !== A[0].length) {
-
-            showResult(
-                "Inverse of Matrix A",
-                `
-                    <p class="error">
-                        ✕ Inverse does not exist because
-                        Matrix A is not square.
-                    </p>
-                `
-            );
-
-            return;
-        }
-
-
-        const det =
-            determinant(A);
-
-
-        /* STEP 1: CHECK DETERMINANT */
-
-        if (Math.abs(det) < 1e-10) {
-
-            showResult(
-                "Inverse of Matrix A",
-                `
-                    <div class="step">
-
-                        <span class="step-number">1</span>
-
-                        <div>
-
-                            <h3>Find determinant</h3>
-
-                            <p>
-                                det(A) =
-                                ${formatNumber(det)}
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="step">
-
-                        <span class="step-number">2</span>
-
-                        <div>
-
-                            <h3 class="error">
-                                ✕ Inverse Does Not Exist
-                            </h3>
-
-                            <p class="result-note">
-
-                                Since det(A) = 0,
-                                Matrix A is singular.
-
-                                Therefore,
-
-                                <strong>
-                                    A⁻¹ does not exist.
-                                </strong>
-
-                            </p>
-
-                        </div>
-
-                    </div>
-                `
-            );
-
-            return;
-        }
-
-
-        const result =
-            inverseWithSteps(A);
-
-
-        if (!result) {
-
-            showResult(
-                "Inverse of Matrix A",
-                `
-                    <p class="error">
-                        ✕ Inverse could not be calculated.
-                    </p>
-                `
-            );
-
-            return;
-        }
-
-
-        let html = `
-
-            <div class="step">
-
-                <span class="step-number">1</span>
-
-                <div>
-
-                    <h3>Find determinant</h3>
-
-                    <p>
-                        det(A) =
-                        ${formatNumber(det)}
-                    </p>
-
-                    <p class="success">
-                        ✓ Since det(A) ≠ 0,
-                        the inverse exists.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="step">
-
-                <span class="step-number">2</span>
-
-                <div>
-
-                    <h3>Form the augmented matrix</h3>
-
-                    <p class="result-note">
-                        Write the identity matrix beside A:
-                    </p>
-
-                    ${displayAugmentedMatrix(
-                        A.map((row, i) => [
-                            ...row,
-                            ...Array.from(
-                                {length: A.length},
-                                (_, j) =>
-                                    i === j ? 1 : 0
-                            )
-                        ])
-                    )}
-
-                </div>
-
-            </div>
-        `;
-
-
-        result.steps.forEach((step, index) => {
-
-            html += `
-
-                <div class="step">
-
-                    <span class="step-number">
-                        ${index + 3}
-                    </span>
-
-                    <div>
-
-                        <h3>
-                            ${step.operation}
-                        </h3>
-
-                        ${displayAugmentedMatrix(
-                            step.matrix
-                        )}
-
-                    </div>
-
-                </div>
-            `;
-        });
-
-
-        html += `
-
-            <div class="step final-step">
-
-                <span class="step-number">
-                    ✓
-                </span>
-
-                <div>
-
-                    <h3>
-                        Final Inverse Matrix
-                    </h3>
-
-                    <p class="result-note">
-                        When the left side becomes
-                        the identity matrix I,
-                        the right side is A⁻¹.
-                    </p>
-
-                    ${displayMatrix(
-                        result.inverse
-                    )}
-
-                    <p class="final-line">
-                        Therefore,
-                        A⁻¹ =
-                    </p>
-
-                    ${displayMatrix(
-                        result.inverse
-                    )}
-
-                </div>
-
-            </div>
-        `;
-
-
-        showResult(
-            "Step-by-Step Inverse",
-            html
-        );
-
-
-    } catch (error) {
-
-        showError(error.message);
-    }
-}
-
-
-/* =========================
-   A²
-========================= */
-
-function calculateSquare() {
-
-    try {
-
-        const A = getMatrixA();
-
-        if (A.length !== A[0].length) {
-
-            showResult(
-                "A² — Matrix Square",
-                `
-                    <p class="error">
-                        Matrix square A² is possible
-                        only for a square matrix.
-                    </p>
-                `
-            );
-
-            return;
-        }
-
-
-        const result =
-            square(A);
-
-
-        showResult(
-            "A² — Matrix Square",
-            `
-                <p class="result-note">
-                    A² = A × A
-                </p>
-
-                ${displayMatrix(result)}
-            `
-        );
-
-    } catch (error) {
-
-        showError(error.message);
-    }
-}
-
-
-/* =========================
-   TRANSPOSE
-========================= */
-
-function calculateTranspose() {
-
-    try {
-
-        const A = getMatrixA();
-
-        const result =
-            transpose(A);
-
-
-        showResult(
-            "Transpose of Matrix A",
-            `
-                <p class="result-note">
-                    Rows of A become columns in Aᵀ.
-                </p>
-
-                ${displayMatrix(result)}
-            `
-        );
-
-    } catch (error) {
-
-        showError(error.message);
-    }
-}
-
-
-/* =========================
+/* =========================================
    ADDITION
-========================= */
+========================================= */
 
 function prepareAddition() {
 
-    currentOperation = "addition";
-
     showMatrixB();
 
-    document.getElementById("rowsB").value =
-        document.getElementById("rowsA").value;
+    const button =
+        event.currentTarget;
 
-    document.getElementById("colsB").value =
-        document.getElementById("colsA").value;
+    button.dataset.operation = "addition";
 
-    createMatrixB();
+    button.innerHTML = `
+        <span class="op-icon">✓</span>
+        <span>
+            <strong>Calculate A + B</strong>
+            <small>Click again after entering B</small>
+        </span>
+        <span class="arrow">→</span>
+    `;
 
-    document.getElementById("matrixBSection")
-        .scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
+    button.onclick = calculateAddition;
 }
 
 
 function calculateAddition() {
 
-    try {
+    const A = getMatrixA();
+    const B = getMatrixB();
 
-        const A = getMatrixA();
-        const B = getMatrixB();
-
-        const result =
-            addMatrices(A, B);
-
-
-        if (!result) {
-
-            showResult(
-                "Matrix Addition",
-                `
-                    <p class="error">
-                        ✕ Both matrices must have
-                        the same dimensions.
-                    </p>
-                `
-            );
-
-            return;
-        }
-
+    if (
+        A.length !== B.length ||
+        A[0].length !== B[0].length
+    ) {
 
         showResult(
-            "A + B — Matrix Addition",
-            displayMatrix(result)
+            "Addition",
+            `
+            <div class="error-message">
+                ❌ Both matrices must have the same order.
+            </div>
+            `
         );
 
-    } catch (error) {
-
-        showError(error.message);
+        return;
     }
-}
 
 
-/* =========================
-   SUBTRACTION
-========================= */
-
-function prepareSubtraction() {
-
-    currentOperation = "subtraction";
-
-    showMatrixB();
-
-    document.getElementById("rowsB").value =
-        document.getElementById("rowsA").value;
-
-    document.getElementById("colsB").value =
-        document.getElementById("colsA").value;
-
-    createMatrixB();
-}
-
-
-function calculateSubtraction() {
-
-    try {
-
-        const A = getMatrixA();
-        const B = getMatrixB();
-
-        const result =
-            subtractMatrices(A, B);
-
-
-        if (!result) {
-
-            showResult(
-                "Matrix Subtraction",
-                `
-                    <p class="error">
-                        ✕ Both matrices must have
-                        the same dimensions.
-                    </p>
-                `
-            );
-
-            return;
-        }
-
-
-        showResult(
-            "A − B — Matrix Subtraction",
-            displayMatrix(result)
+    const result =
+        A.map(
+            (row,i) =>
+                row.map(
+                    (value,j) =>
+                        value + B[i][j]
+                )
         );
 
-    } catch (error) {
-
-        showError(error.message);
-    }
-}
-
-
-/* =========================
-   MULTIPLICATION
-========================= */
-
-function prepareMultiplication() {
-
-    currentOperation = "multiplication";
-
-    showMatrixB();
-
-    document.getElementById("rowsB").value =
-        document.getElementById("colsA").value;
-
-    document.getElementById("colsB").value = 2;
-
-    createMatrixB();
-
-    document.getElementById("matrixBSection")
-        .scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-}
-
-
-function calculateMultiplication() {
-
-    try {
-
-        const A = getMatrixA();
-        const B = getMatrixB();
-
-        const result =
-            multiplyMatrices(A, B);
-
-
-        if (!result) {
-
-            showResult(
-                "Matrix Multiplication",
-                `
-                    <p class="error">
-                        ✕ Number of columns of A
-                        must equal number of rows of B.
-                    </p>
-                `
-            );
-
-            return;
-        }
-
-
-        showResult(
-            "A × B — Matrix Multiplication",
-            displayMatrix(result)
-        );
-
-    } catch (error) {
-
-        showError(error.message);
-    }
-}
-
-
-/* =========================
-   MATRIX B
-========================= */
-
-function showMatrixB() {
-
-    document.getElementById("matrixBSection")
-        .classList.remove("hidden");
-}
-
-
-/* =========================
-   CLEAR
-========================= */
-
-function clearResult() {
-
-    document.getElementById("resultCard")
-        .classList.add("hidden");
-
-    document.getElementById("resultContent")
-        .innerHTML = "";
-}
-
-
-/* =========================
-   ERROR
-========================= */
-
-function showError(message) {
 
     showResult(
-        "Input Error",
+        "Matrix Addition — A + B",
         `
-            <p class="error">
-                ✕ ${message}
-            </p>
+
+        <div class="formula">
+            A + B
+        </div>
+
+        ${matrixHTML(result)}
+
+        <div class="answer-box">
+
+            <span>FINAL ANSWER</span>
+
+            <strong>
+                A + B calculated ✓
+            </strong>
+
+        </div>
         `
     );
 }
 
 
-/* =========================
-   OPERATION LISTENER
-========================= */
+/* =========================================
+   SUBTRACTION
+========================================= */
 
-document.addEventListener(
-    "click",
-    function(event) {
+function prepareSubtraction() {
 
-        const button =
-            event.target.closest(
-                ".operation-grid button"
+    showMatrixB();
+
+    const button =
+        event.currentTarget;
+
+    button.innerHTML = `
+        <span class="op-icon">✓</span>
+        <span>
+            <strong>Calculate A − B</strong>
+            <small>Click again after entering B</small>
+        </span>
+        <span class="arrow">→</span>
+    `;
+
+    button.onclick = calculateSubtraction;
+}
+
+
+function calculateSubtraction() {
+
+    const A = getMatrixA();
+    const B = getMatrixB();
+
+    if (
+        A.length !== B.length ||
+        A[0].length !== B[0].length
+    ) {
+
+        showResult(
+            "Subtraction",
+            `
+            <div class="error-message">
+                ❌ Both matrices must have the same order.
+            </div>
+            `
+        );
+
+        return;
+    }
+
+
+    const result =
+        A.map(
+            (row,i) =>
+                row.map(
+                    (value,j) =>
+                        value - B[i][j]
+                )
+        );
+
+
+    showResult(
+        "Matrix Subtraction — A − B",
+        `
+
+        <div class="formula">
+            A − B
+        </div>
+
+        ${matrixHTML(result)}
+
+        <div class="answer-box">
+
+            <span>FINAL ANSWER</span>
+
+            <strong>
+                A − B calculated ✓
+            </strong>
+
+        </div>
+        `
+    );
+}
+
+
+/* =========================================
+   MULTIPLICATION
+========================================= */
+
+function prepareMultiplication() {
+
+    showMatrixB();
+
+    const button =
+        event.currentTarget;
+
+    button.innerHTML = `
+        <span class="op-icon">✓</span>
+        <span>
+            <strong>Calculate A × B</strong>
+            <small>Click again after entering B</small>
+        </span>
+        <span class="arrow">→</span>
+    `;
+
+    button.onclick = calculateMultiplication;
+}
+
+
+function calculateMultiplication() {
+
+    const A = getMatrixA();
+    const B = getMatrixB();
+
+
+    if (A[0].length !== B.length) {
+
+        showResult(
+            "Multiplication",
+            `
+            <div class="error-message">
+
+                ❌ Matrix multiplication is not possible.
+
+                <p>
+                    Columns of A must equal rows of B.
+                </p>
+
+                <div class="formula">
+                    ${A.length} × ${A[0].length}
+                    &nbsp; × &nbsp;
+                    ${B.length} × ${B[0].length}
+                </div>
+
+            </div>
+            `
+        );
+
+        return;
+    }
+
+
+    const result =
+        multiplyMatrices(A,B);
+
+
+    showResult(
+        "Matrix Multiplication — A × B",
+        `
+
+        <div class="formula">
+            Columns of A = Rows of B
+        </div>
+
+        ${matrixHTML(result)}
+
+        <div class="answer-box">
+
+            <span>FINAL ANSWER</span>
+
+            <strong>
+                A × B calculated ✓
+            </strong>
+
+        </div>
+
+        `
+    );
+}
+
+
+/* =========================================
+   SHOW MATRIX B
+========================================= */
+
+function showMatrixB() {
+
+    const section =
+        document.getElementById(
+            "matrixBSection"
+        );
+
+    section.classList.remove("hidden");
+
+    createMatrixB();
+
+    section.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+}
+
+
+/* =========================================
+   CLEAR RESULT
+========================================= */
+
+function clearResult() {
+
+    document
+        .getElementById("resultCard")
+        .classList.add("hidden");
+}
+
+
+/* =========================================
+   MATRIX STATUS
+========================================= */
+
+function updateMatrixStatus() {
+
+    const rows =
+        document.getElementById("rowsA").value;
+
+    const cols =
+        document.getElementById("colsA").value;
+
+    document.getElementById(
+        "matrixSize"
+    ).textContent =
+        `${rows} × ${cols}`;
+
+
+    const matrix = getMatrixA();
+
+    if (isSquare(matrix)) {
+
+        const det = determinant(matrix);
+
+        document.getElementById(
+            "detValue"
+        ).textContent =
+            formatNumber(det);
+
+        const inverseStatus =
+            document.getElementById(
+                "inverseStatus"
             );
 
-        if (!button) return;
+        if (Math.abs(det) < 1e-10) {
 
+            inverseStatus.textContent =
+                "Does not exist";
 
-        const text =
-            button.innerText.toLowerCase();
+            inverseStatus.className =
+                "error";
 
+        } else {
 
-        if (
-            currentOperation === "addition" &&
-            text.includes("addition")
-        ) {
+            inverseStatus.textContent =
+                "Exists ✓";
 
-            calculateAddition();
-
-            currentOperation = null;
+            inverseStatus.className =
+                "success";
         }
 
+    } else {
 
-        else if (
-            currentOperation === "subtraction" &&
-            text.includes("subtraction")
-        ) {
+        document.getElementById(
+            "detValue"
+        ).textContent = "N/A";
 
-            calculateSubtraction();
+        document.getElementById(
+            "inverseStatus"
+        ).textContent =
+            "Not square";
 
-            currentOperation = null;
-        }
+        document.getElementById(
+            "inverseStatus"
+        ).className =
+            "warning";
+    }
+}
 
 
-        else if (
-            currentOperation === "multiplication" &&
-            text.includes("multiplication")
-        ) {
+/* =========================================
+   INITIALIZE
+========================================= */
 
-            calculateMultiplication();
+window.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-            currentOperation = null;
-        }
+        createMatrixA();
 
     }
 );
-
-
-/* =========================
-   START
-========================= */
-
-createMatrixA();
