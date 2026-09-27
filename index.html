@@ -3,659 +3,278 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Matrix Solver | Smart Matrix Calculator</title>
+    <title>Matrix Solver</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
 
-
 <body>
-
-<div class="background-shapes">
-    <div class="shape shape-1"></div>
-    <div class="shape shape-2"></div>
-    <div class="shape shape-3"></div>
-</div>
-
 
 <div class="container">
 
-    <!-- ================= HERO ================= -->
-
+    <!-- HEADER -->
     <header class="hero">
 
-        <div class="hero-text">
+        <div class="logo-box">∑</div>
 
-            <div class="brand-badge">
-                🧮 MATRIX SOLVER
-            </div>
-
-            <h1>
-                Solve Matrices
-                <span>Smarter.</span>
-            </h1>
-
-            <p>
-                A fast, simple and powerful matrix calculator
-                for students, learners and mathematics enthusiasts.
-            </p>
-
-            <div class="hero-tags">
-                <span>⚡ Fast</span>
-                <span>🎯 Accurate</span>
-                <span>📚 Step-by-step</span>
-            </div>
-
-        </div>
-
-
-        <div class="matrix-art">
-
-            <div class="art-glow"></div>
-
-            <div class="big-matrix">
-
-                <div>[</div>
-
-                <div class="matrix-values">
-                    <span>2</span>
-                    <span>4</span>
-                    <span>1</span>
-                    <span>3</span>
-                </div>
-
-                <div>]</div>
-
-            </div>
-
-            <div class="art-symbol">×</div>
-
-            <div class="art-equals">=</div>
-
-            <div class="art-result">
-                ✓
-            </div>
-
+        <div>
+            <h1>Matrix Solver</h1>
+            <p>Fast • Simple • Powerful Matrix Calculator</p>
         </div>
 
     </header>
 
 
-    <!-- ================= QUICK INFO ================= -->
-
-    <section class="info-grid">
-
-        <div class="info-card">
-            <div class="info-icon purple">∑</div>
-            <div>
-                <strong>Determinant</strong>
-                <small>Calculate instantly</small>
-            </div>
-        </div>
-
-
-        <div class="info-card">
-            <div class="info-icon blue">A⁻¹</div>
-            <div>
-                <strong>Inverse</strong>
-                <small>Check existence first</small>
-            </div>
-        </div>
-
-
-        <div class="info-card">
-            <div class="info-icon green">A²</div>
-            <div>
-                <strong>Matrix Square</strong>
-                <small>A × A calculation</small>
-            </div>
-        </div>
-
-
-        <div class="info-card">
-            <div class="info-icon orange">×</div>
-            <div>
-                <strong>Operations</strong>
-                <small>+ − × and transpose</small>
-            </div>
-        </div>
-
-    </section>
-
-
-    <!-- ================= MATRIX A ================= -->
-
-    <section class="card matrix-card">
-
-        <div class="card-heading">
-
-            <div class="heading-left">
-
-                <div class="section-icon">
-                    A
-                </div>
-
-                <div>
-                    <h2>Matrix A</h2>
-
-                    <p>
-                        Enter your matrix values below
-                    </p>
-                </div>
-
-            </div>
-
-
-            <div class="matrix-status">
-
-                <span class="status-label">
-                    Size
-                </span>
-
-                <strong id="matrixSize">
-                    1 × 1
-                </strong>
-
-            </div>
-
-        </div>
-
-
-        <!-- SIZE CONTROLS -->
-
-        <div class="size-controls">
-
-            <div class="control-box">
-
-                <label for="rowsA">
-                    Rows
-                </label>
-
-                <input
-                    id="rowsA"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value="2"
-                    onchange="createMatrixA()"
-                >
-
-            </div>
-
-
-            <div class="dimension-symbol">
-                ×
-            </div>
-
-
-            <div class="control-box">
-
-                <label for="colsA">
-                    Columns
-                </label>
-
-                <input
-                    id="colsA"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value="2"
-                    onchange="createMatrixA()"
-                >
-
-            </div>
-
-
-            <button
-                class="generate-btn"
-                onclick="createMatrixA()"
-            >
-                ✨ Generate Matrix
-            </button>
-
-        </div>
-
-
-        <!-- MATRIX -->
-
-        <div class="matrix-wrapper">
-
-            <div class="matrix-bracket left">
-                [
-            </div>
-
-            <div
-                id="matrixA"
-                class="matrix-input-grid"
-            ></div>
-
-            <div class="matrix-bracket right">
-                ]
-            </div>
-
-        </div>
-
-
-        <!-- LIVE STATUS -->
-
-        <div class="live-status">
-
-            <div class="live-item">
-
-                <span class="live-dot"></span>
-
-                <span>
-                    Matrix ready
-                </span>
-
-            </div>
-
-
-            <div class="live-item">
-
-                <span>
-                    det(A):
-                </span>
-
-                <strong id="detValue">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div class="live-item">
-
-                <span>
-                    Inverse:
-                </span>
-
-                <strong
-                    id="inverseStatus"
-                    class="warning"
-                >
-                    Check input
-                </strong>
-
-            </div>
+    <!-- INTRO -->
+    <section class="intro-card">
+
+        <h2>🧮 Matrix Calculator</h2>
+
+        <p>
+            Solve matrices quickly and accurately directly in your browser.
+            Supports negative numbers, fractions, decimals and multiple matrix operations.
+        </p>
+
+        <div class="feature-list">
+
+            <span>✓ Determinant</span>
+            <span>✓ Inverse</span>
+            <span>✓ A² Square</span>
+            <span>✓ Addition</span>
+            <span>✓ Subtraction</span>
+            <span>✓ Multiplication</span>
+            <span>✓ Transpose</span>
 
         </div>
 
     </section>
 
 
-    <!-- ================= OPERATIONS ================= -->
-
+    <!-- MATRIX A -->
     <section class="card">
 
-        <div class="section-title">
-
-            <div class="section-title-icon">
-                ⚙️
-            </div>
+        <div class="card-title">
 
             <div>
-                <h2>Matrix Operations</h2>
-
-                <p>
-                    Choose what you want to calculate
-                </p>
+                <h2>Matrix A</h2>
+                <p>Enter your first matrix</p>
             </div>
 
+            <span class="matrix-label">A</span>
+
+        </div>
+
+
+        <!-- SIZE -->
+        <div class="size-controls">
+
+            <div class="input-group">
+
+                <label>Rows</label>
+
+                <select id="rowsA">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
+
+            </div>
+
+
+            <span class="multiply-symbol">×</span>
+
+
+            <div class="input-group">
+
+                <label>Columns</label>
+
+                <select id="colsA">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
+
+            </div>
+
+
+            <button class="generate-btn" onclick="createMatrixA()">
+                Generate Matrix
+            </button>
+
         </div>
 
 
-        <div class="operation-grid">
-
-            <button
-                class="operation-btn determinant-btn"
-                onclick="calculateDeterminant()"
-            >
-                <span class="op-icon">∑</span>
-
-                <span>
-                    <strong>Determinant</strong>
-                    <small>Find det(A)</small>
-                </span>
-
-                <span class="arrow">→</span>
-            </button>
-
-
-            <button
-                class="operation-btn inverse-btn"
-                onclick="calculateInverse()"
-            >
-                <span class="op-icon">A⁻¹</span>
-
-                <span>
-                    <strong>Inverse</strong>
-                    <small>Check & calculate</small>
-                </span>
-
-                <span class="arrow">→</span>
-            </button>
-
-
-            <button
-                class="operation-btn square-btn"
-                onclick="calculateSquare()"
-            >
-                <span class="op-icon">A²</span>
-
-                <span>
-                    <strong>Matrix Square</strong>
-                    <small>Calculate A × A</small>
-                </span>
-
-                <span class="arrow">→</span>
-            </button>
-
-
-            <button
-                class="operation-btn transpose-btn"
-                onclick="calculateTranspose()"
-            >
-                <span class="op-icon">↔</span>
-
-                <span>
-                    <strong>Transpose</strong>
-                    <small>Find Aᵀ</small>
-                </span>
-
-                <span class="arrow">→</span>
-            </button>
-
-
-            <button
-                class="operation-btn addition-btn"
-                onclick="prepareAddition()"
-            >
-                <span class="op-icon">＋</span>
-
-                <span>
-                    <strong>Addition</strong>
-                    <small>A + B</small>
-                </span>
-
-                <span class="arrow">→</span>
-            </button>
-
-
-            <button
-                class="operation-btn subtraction-btn"
-                onclick="prepareSubtraction()"
-            >
-                <span class="op-icon">−</span>
-
-                <span>
-                    <strong>Subtraction</strong>
-                    <small>A − B</small>
-                </span>
-
-                <span class="arrow">→</span>
-            </button>
-
-
-            <button
-                class="operation-btn multiplication-btn"
-                onclick="prepareMultiplication()"
-            >
-                <span class="op-icon">×</span>
-
-                <span>
-                    <strong>Multiplication</strong>
-                    <small>A × B</small>
-                </span>
-
-                <span class="arrow">→</span>
-            </button>
-
-        </div>
+        <!-- MATRIX INPUT -->
+        <div id="matrixA" class="matrix-container"></div>
 
     </section>
 
 
-    <!-- ================= MATRIX B ================= -->
+    <!-- MATRIX B -->
+    <section class="card hidden" id="matrixBCard">
 
-    <section
-        id="matrixBSection"
-        class="card hidden"
-    >
+        <div class="card-title">
 
-        <div class="card-heading">
-
-            <div class="heading-left">
-
-                <div class="section-icon secondary">
-                    B
-                </div>
-
-                <div>
-                    <h2>Matrix B</h2>
-
-                    <p>
-                        Enter the second matrix
-                    </p>
-                </div>
-
+            <div>
+                <h2>Matrix B</h2>
+                <p>Enter your second matrix</p>
             </div>
+
+            <span class="matrix-label matrix-b">B</span>
 
         </div>
 
 
         <div class="size-controls">
 
-            <div class="control-box">
+            <div class="input-group">
 
-                <label for="rowsB">
-                    Rows
-                </label>
+                <label>Rows</label>
 
-                <input
-                    id="rowsB"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value="2"
-                    onchange="createMatrixB()"
-                >
+                <select id="rowsB">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
 
             </div>
 
 
-            <div class="dimension-symbol">
-                ×
-            </div>
+            <span class="multiply-symbol">×</span>
 
 
-            <div class="control-box">
+            <div class="input-group">
 
-                <label for="colsB">
-                    Columns
-                </label>
+                <label>Columns</label>
 
-                <input
-                    id="colsB"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value="2"
-                    onchange="createMatrixB()"
-                >
+                <select id="colsB">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
 
             </div>
 
 
-            <button
-                class="generate-btn secondary-generate"
-                onclick="createMatrixB()"
-            >
-                ✨ Generate B
+            <button class="generate-btn" onclick="createMatrixB()">
+                Generate Matrix B
             </button>
 
         </div>
 
 
-        <div class="matrix-wrapper">
+        <div id="matrixB" class="matrix-container"></div>
 
-            <div class="matrix-bracket left">
-                [
+    </section>
+
+
+    <!-- OPERATIONS -->
+    <section class="card">
+
+        <div class="card-title">
+
+            <div>
+                <h2>⚡ Operations</h2>
+                <p>Select what you want to calculate</p>
             </div>
 
-            <div
-                id="matrixB"
-                class="matrix-input-grid"
-            ></div>
+        </div>
 
-            <div class="matrix-bracket right">
-                ]
-            </div>
+
+        <div class="operations-grid">
+
+            <button class="operation-btn blue" onclick="calculateDeterminant()">
+                <span>🔢</span>
+                <strong>Determinant</strong>
+                <small>Find det(A)</small>
+            </button>
+
+
+            <button class="operation-btn purple" onclick="calculateInverse()">
+                <span>↔️</span>
+                <strong>Inverse</strong>
+                <small>Find A⁻¹</small>
+            </button>
+
+
+            <button class="operation-btn green" onclick="calculateSquare()">
+                <span>²</span>
+                <strong>Matrix Square</strong>
+                <small>Find A²</small>
+            </button>
+
+
+            <button class="operation-btn orange" onclick="calculateTranspose()">
+                <span>↕️</span>
+                <strong>Transpose</strong>
+                <small>Find Aᵀ</small>
+            </button>
+
+
+            <button class="operation-btn cyan" onclick="prepareAddition()">
+                <span>➕</span>
+                <strong>Addition</strong>
+                <small>A + B</small>
+            </button>
+
+
+            <button class="operation-btn pink" onclick="prepareSubtraction()">
+                <span>➖</span>
+                <strong>Subtraction</strong>
+                <small>A − B</small>
+            </button>
+
+
+            <button class="operation-btn red" onclick="prepareMultiplication()">
+                <span>✖️</span>
+                <strong>Multiplication</strong>
+                <small>A × B</small>
+            </button>
 
         </div>
 
     </section>
 
 
-    <!-- ================= RESULT ================= -->
-
-    <section
-        id="resultCard"
-        class="card result-card hidden"
-    >
+    <!-- RESULT -->
+    <section class="result-card">
 
         <div class="result-header">
 
-            <div class="result-title-area">
+            <h2>📊 Result</h2>
 
-                <div class="result-icon">
-                    ✓
-                </div>
-
-                <div>
-
-                    <span>
-                        CALCULATION RESULT
-                    </span>
-
-                    <h2 id="resultTitle">
-                        Result
-                    </h2>
-
-                </div>
-
-            </div>
-
-
-            <button
-                class="clear-btn"
-                onclick="clearResult()"
-            >
-                Clear ×
+            <button onclick="clearResult()" class="clear-btn">
+                Clear
             </button>
 
         </div>
 
 
-        <div
-            id="resultContent"
-            class="result-content"
-        ></div>
+        <div id="result">
 
-    </section>
+            <div class="empty-result">
 
+                <div class="empty-icon">∑</div>
 
-    <!-- ================= HOW TO USE ================= -->
+                <h3>Your result will appear here</h3>
 
-    <section class="how-card">
-
-        <div class="how-title">
-            🚀 How to use Matrix Solver
-        </div>
-
-
-        <div class="how-grid">
-
-            <div class="how-step">
-
-                <div class="how-number">
-                    01
-                </div>
-
-                <div>
-                    <strong>
-                        Set Matrix Size
-                    </strong>
-
-                    <p>
-                        Choose the number of rows
-                        and columns.
-                    </p>
-                </div>
-
-            </div>
-
-
-            <div class="how-step">
-
-                <div class="how-number">
-                    02
-                </div>
-
-                <div>
-                    <strong>
-                        Enter Values
-                    </strong>
-
-                    <p>
-                        Enter positive, zero or
-                        negative numbers.
-                    </p>
-                </div>
-
-            </div>
-
-
-            <div class="how-step">
-
-                <div class="how-number">
-                    03
-                </div>
-
-                <div>
-                    <strong>
-                        Choose Operation
-                    </strong>
-
-                    <p>
-                        Select determinant,
-                        inverse, A² or another operation.
-                    </p>
-                </div>
-
-            </div>
-
-
-            <div class="how-step">
-
-                <div class="how-number">
-                    04
-                </div>
-
-                <div>
-                    <strong>
-                        Get the Answer
-                    </strong>
-
-                    <p>
-                        View your result and
-                        calculation steps.
-                    </p>
-                </div>
+                <p>
+                    Enter a matrix and select an operation above.
+                </p>
 
             </div>
 
@@ -664,20 +283,15 @@
     </section>
 
 
-    <!-- ================= FOOTER ================= -->
-
+    <!-- FOOTER -->
     <footer>
 
-        <div class="footer-brand">
-            🧮 Matrix Solver
-        </div>
-
         <p>
-            Smart • Simple • Student Friendly
+            🧮 Matrix Solver
         </p>
 
         <span>
-            Built for learning mathematics
+            Built for students • Fast • Accurate • Easy
         </span>
 
     </footer>
